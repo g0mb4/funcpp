@@ -28,10 +28,13 @@ public:
                 List,
         };
 
-        virtual std::string string() const = 0;
-        virtual std::shared_ptr<Variable> value() const = 0;
+        virtual const std::string string() const = 0;
+        virtual const std::shared_ptr<Variable> value() const = 0;
 
-        Type type() const { return m_type; };
+        bool is_number() const { return m_type == Type::Number; }
+        bool is_list() const { return m_type == Type::List; }
+
+        Type type() const { return m_type; }
 
 protected:
         Variable(Type type) : m_type(type) {};
@@ -41,17 +44,17 @@ protected:
 
 class Number final : public Variable {
 public:
-        static std::shared_ptr<Variable> number(int value) {
+        static const std::shared_ptr<Variable> number(int value) {
                 return std::shared_ptr<Number>(new Number(value));
         }
 
-        std::string string() const override {
+        const std::string string() const override {
                 return std::to_string(m_value);
         }
 
         int as_int() const { return m_value; }
 
-        std::shared_ptr<Variable> value() const override {
+        const std::shared_ptr<Variable> value() const override {
                 return Number::number(m_value);
         }
 
@@ -76,23 +79,23 @@ private:
 
 class List final : public Variable {
 public:
-        static std::shared_ptr<Variable> list(const std::vector<int>& elements) {
+        static const std::shared_ptr<Variable> list(const std::vector<int>& elements) {
                 return std::shared_ptr<List>(new List(elements));
         }
 
-        static std::shared_ptr<Variable> list(const std::vector<std::shared_ptr<Variable>>& elements) {
+        static const std::shared_ptr<Variable> list(const std::vector<std::shared_ptr<Variable>>& elements) {
                 return std::shared_ptr<List>(new List(elements));
         }
 
-        static std::shared_ptr<Variable> list(const std::shared_ptr<Variable>& v) {
+        static const std::shared_ptr<Variable> list(const std::shared_ptr<Variable>& v) {
                 return std::shared_ptr<List>(new List(v));
         }
 
-        static std::shared_ptr<Variable> empty() {
+        static const std::shared_ptr<Variable> empty() {
                 return std::shared_ptr<List>(new List(std::vector<int>({})));
         }
 
-        std::string string() const override {
+        const std::string string() const override {
                 std::string s = "[";
                 const std::shared_ptr<Variable> l = value();
                 string_impl(l, s);
@@ -100,7 +103,7 @@ public:
                 return s;
         }
 
-        std::shared_ptr<Variable> value() const override {
+        const std::shared_ptr<Variable> value() const override {
                 return List::list(m_elements);
         }
 
@@ -192,7 +195,7 @@ void print(const std::shared_ptr<Variable>& v) {
 }
 
 int length(const std::shared_ptr<Variable>& v) {
-        if (v->type() == Variable::Type::Number) {
+        if (v->is_number()) {
                 fprintf(stderr, "Illegal operation : %s\n", __FUNCTION__);
                 return 0;
         }
@@ -206,7 +209,7 @@ bool empty(const std::shared_ptr<Variable>& v) {
 }
 
 std::shared_ptr<Variable> head(const std::shared_ptr<Variable>& v) {
-        if (v->type() == Variable::Type::Number) {
+        if (v->is_number()) {
                 fprintf(stderr, "Illegal operation : %s\n", __FUNCTION__);
                 return nullptr;
         }
@@ -216,7 +219,7 @@ std::shared_ptr<Variable> head(const std::shared_ptr<Variable>& v) {
 }
 
 std::shared_ptr<Variable> tail(const std::shared_ptr<Variable>& v) {
-        if (v->type() == Variable::Type::Number) {
+        if (v->is_number()) {
                 fprintf(stderr, "Illegal operation : %s\n", __FUNCTION__);
                 return nullptr;
         }
