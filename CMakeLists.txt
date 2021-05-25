@@ -7,4 +7,5 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories( . )
 
 add_executable(ex1 examples/ex1.cpp funcpp.h)
+add_executable(prime examples/prime.cpp funcpp.h)
 set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT ex1)
