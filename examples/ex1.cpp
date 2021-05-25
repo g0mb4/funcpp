@@ -9,7 +9,7 @@ bool odd(Var & value){
 }
 
 int main() {
-        Var l = List::list(std::vector<int>({1, 2, 3}));
+        auto l = List::list(std::vector<int>({1, 2, 3}));
 
         print(l);
         print(head(l));
