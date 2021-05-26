@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <stdlib.h>
 
 #include <memory>
 #include <vector>
@@ -69,7 +70,8 @@ public:
 
         Var add(Var & n) {
                 if (!n->is_number()) {
-                        return nullptr;
+                        fprintf(stderr, "Illegal operation on a list (%s): %s\n", n->string().c_str(), __FUNCTION__);
+                        exit(1);
                 }
 
                 return std::make_shared<Number>(m_value + as_int(n));
@@ -117,8 +119,9 @@ public:
         int size() const { return (int)m_elements.size(); };
 
         Var first() const { 
-                if(m_elements.size() < 0){
-                        return nullptr;
+                if(m_elements.size() == 0){
+                        fprintf(stderr, "Illegal operation on a list (%s): %s, it's empty\n", string().c_str(), __FUNCTION__);
+                        exit(1);
                 }
 
                 return m_elements[0];
@@ -219,16 +222,16 @@ void print(Var & v) {
 const std::shared_ptr<Variable> length(Var & l) {
         if (l->is_number()) {
                 fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
-                return 0;
+                exit(1);
         }
 
         return Number::number(as_list(l)->size());
 }
 
-bool empty(Var & l) {
+static bool empty(Var & l) {
         if (l->is_number()) {
                 fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
-                return 0;
+                exit(1);
         }
 
         return as_int(length(l)) == 0;
@@ -237,7 +240,7 @@ bool empty(Var & l) {
 Var head(Var & l) {
         if (l->is_number()) {
                 fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
-                return nullptr;
+                exit(1);
         }
 
         return as_list(l)->first();
@@ -246,7 +249,7 @@ Var head(Var & l) {
 Var tail(Var & l) {
         if (l->is_number()) {
                 fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
-                return nullptr;
+                exit(1);
         }
 
         if (as_int(length(l)) < 2) {
@@ -259,7 +262,7 @@ Var tail(Var & l) {
 Var append(Var & v, Var & l){
         if(!l->is_list()){
                 fprintf(stderr, "Second parameter (%s) is not a list in: %s\n", l->string().c_str(), __FUNCTION__);
-                return nullptr;
+                exit(1);
         }
 
         if(empty(l)){
@@ -269,7 +272,7 @@ Var append(Var & v, Var & l){
 
                 if(list->first()->type() != v->type()){
                         fprintf(stderr, "Incompatible types to append: %s + %s\n", l->string().c_str(), v->string().c_str());
-                        return nullptr;
+                        exit(1);
                 }
 
                 return list->append(v);
@@ -302,7 +305,7 @@ static Var map_impl(Var (*function)(Var & v), Var & l, Var & r){
 Var map(Var (*function)(Var & n), Var & l){
         if(!l->is_list()){
                 fprintf(stderr, "Second parameter (%s) is not a list in: %s\n", l->string().c_str(), __FUNCTION__);
-                return nullptr;
+                exit(1);
         }
 
         return map_impl(function, l, List::empty());
@@ -323,7 +326,7 @@ static Var filter_impl(bool (*function)(Var & n), Var & l, Var & r){
 Var filter(bool (*function)(Var & n), Var & l){
         if(!l->is_list()){
                 fprintf(stderr, "Second parameter (%s) is not a list in: %s\n", l->string().c_str(), __FUNCTION__);
-                return nullptr;
+                exit(1);
         }
 
         return filter_impl(function, l, List::empty());       
