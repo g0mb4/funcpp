@@ -21,18 +21,6 @@
 #define as_int(x)       as_number(x)->value()
 
 class Variable {
-private:
-        friend void print(const std::shared_ptr<Variable>& v);
-        friend const std::shared_ptr<Variable> length(const std::shared_ptr<Variable>& l);
-
-        friend const std::shared_ptr<Variable> head(const std::shared_ptr<Variable>& l);
-        friend const std::shared_ptr<Variable> tail(const std::shared_ptr<Variable>& l);
-        friend const std::shared_ptr<Variable> append(const std::shared_ptr<Variable>& v, const std::shared_ptr<Variable>& l);
-        friend const std::shared_ptr<Variable> concat(const std::shared_ptr<Variable>& l1, const std::shared_ptr<Variable>& l2);
-        
-        friend const std::shared_ptr<Variable> map(const std::shared_ptr<Variable> (*function)(const std::shared_ptr<Variable>& n), const std::shared_ptr<Variable>& l);
-        friend const std::shared_ptr<Variable> filter(bool (*function)(const std::shared_ptr<Variable>& n), const std::shared_ptr<Variable>& l);
-
 public:
         enum class Type {
                 Number = 0,
@@ -51,6 +39,17 @@ protected:
 
         Type m_type;
 };
+
+void print(Var&);
+Var length(Var&);
+
+Var head(Var&);
+Var tail(Var&);
+Var append(Var&, Var&);
+Var concat(Var&, Var&);
+        
+Var map(Var (*function)(Var&), Var&);
+Var filter(bool (*function)(Var&), Var&);
 
 class Number final : public Variable {
 public:
@@ -220,7 +219,7 @@ void print(Var & v) {
         printf("%s\n", v->string().c_str());
 }
 
-const std::shared_ptr<Variable> length(Var & l) {
+Var length(Var & l) {
         if (l->is_number()) {
                 fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
                 exit(1);
