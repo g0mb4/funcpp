@@ -19,7 +19,7 @@ bool prime(Var & value){
 }
 
 int main(){
-    Var l = List::list(1, 30);
+    Var l = List::list(1, 100);
 
     print(l);
     print(filter(prime, l));
