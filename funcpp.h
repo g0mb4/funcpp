@@ -282,7 +282,7 @@ Var append(Var & v, Var & l){
 
 Var concat(Var & l1, Var & l2) {
         if(!l1->is_list() || !l2->is_list()){
-                fprintf(stderr, "Both parameters need to be a lists in concat: %s, %s\n", l1->string().c_str(), l2->string().c_str());
+                fprintf(stderr, "Both parameters need to be a list in concat: %s, %s\n", l1->string().c_str(), l2->string().c_str());
                 exit(1);
         }
 
