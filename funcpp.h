@@ -40,18 +40,20 @@ protected:
         Type m_type;
 };
 
-void print(Var&);
-Var length(Var&);
+#define PROTOS(x) \
+        x void print(Var&); \
+        x Var length(Var&); \
+        x Var head(Var&); \
+        x Var tail(Var&); \
+        x Var append(Var&, Var&); \
+        x Var concat(Var&, Var&); \
+        x Var map(Var (*function)(Var&), Var&); \
+        x Var filter(bool (*function)(Var&), Var&);
 
-Var head(Var&);
-Var tail(Var&);
-Var append(Var&, Var&);
-Var concat(Var&, Var&);
-        
-Var map(Var (*function)(Var&), Var&);
-Var filter(bool (*function)(Var&), Var&);
+PROTOS()
 
 class Number final : public Variable {
+        PROTOS(friend)
 public:
         static Var number(int value) {
                 return std::make_shared<Number>(value);
@@ -77,12 +79,12 @@ public:
         }
 
         Number(int value) : Variable(Type::Number), m_value(value) {};
-
 private:
         int m_value;
 };
 
 class List final : public Variable {
+        PROTOS(friend)
 public:
         static Var list(const std::vector<int>& elements) {
                 return std::make_shared<List>(elements);
@@ -110,33 +112,6 @@ public:
                 string(l, s);
                 s += "]";
                 return s;
-        }
-
-        std::vector<std::shared_ptr<Variable>> elements() const {
-                return m_elements;
-        }
-
-        int size() const { return (int)m_elements.size(); };
-
-        Var first() const { 
-                if(m_elements.size() == 0){
-                        fprintf(stderr, "Illegal operation on a list (%s): %s, it's empty\n", string().c_str(), __FUNCTION__);
-                        exit(1);
-                }
-
-                return m_elements[0];
-        };
-
-        Var others() const {
-                std::vector<std::shared_ptr<Variable>> elements = m_elements;
-                elements.erase(elements.begin());
-                return List::list(elements);
-        }
-
-        Var append(Var & v) const {
-                std::vector<std::shared_ptr<Variable>> elements = m_elements;
-                elements.emplace_back(v);
-                return List::list(elements);
         }
 
         List(const std::vector<int>& elements) : Variable(Type::List) {
@@ -210,6 +185,29 @@ private:
 
                         string(tail(l), str);
                 }
+        }
+
+        int size() const { return (int)m_elements.size(); };
+
+        Var first() const { 
+                if(m_elements.size() == 0){
+                        fprintf(stderr, "Illegal operation on a list (%s): %s, it's empty\n", string().c_str(), __FUNCTION__);
+                        exit(1);
+                }
+
+                return m_elements[0];
+        };
+
+        Var others() const {
+                std::vector<std::shared_ptr<Variable>> elements = m_elements;
+                elements.erase(elements.begin());
+                return List::list(elements);
+        }
+
+        Var append(Var & v) const {
+                std::vector<std::shared_ptr<Variable>> elements = m_elements;
+                elements.emplace_back(v);
+                return List::list(elements);
         }
 
         std::vector<std::shared_ptr<Variable>> m_elements;
