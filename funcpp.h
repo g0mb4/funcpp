@@ -7,7 +7,8 @@
 #include <vector>
 #include <string>
 
-#define ILLEGAL_INSTRUCTION     "Illegal instruction."
+// Generate "proper" error at complie-time.
+#define ILLEGAL_INSTRUCTION     #"Illegal instruction."
 
 #define for     ILLEGAL_INSTRUCTION
 #define while   ILLEGAL_INSTRUCTION
