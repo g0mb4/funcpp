@@ -308,6 +308,10 @@ Var map(Var (*function)(Var & n), Var & l){
                 exit(1);
         }
 
+        if(empty(l)){
+                return List::empty();
+        }
+
         if(!as_list(l)->first()->is_number()){
                 fprintf(stderr, "List (%s) is not a list of numbers: %s\n", l->string().c_str(), __FUNCTION__);
                 exit(1);
@@ -332,6 +336,10 @@ Var filter(bool (*function)(Var & n), Var & l){
         if(!l->is_list()){
                 fprintf(stderr, "Second parameter (%s) is not a list in: %s\n", l->string().c_str(), __FUNCTION__);
                 exit(1);
+        }
+
+        if(empty(l)){
+                return List::empty();
         }
 
         if(!as_list(l)->first()->is_number()){
