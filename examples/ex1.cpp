@@ -5,7 +5,7 @@ Var add2(Var & value){
 }
 
 bool odd(Var & value){
-        return as_number(value)->as_int() % 2 != 0;
+        return as_int(value) % 2 != 0;
 }
 
 int main() {

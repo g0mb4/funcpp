@@ -15,7 +15,7 @@ bool is_prime(int n, int i = 2){
 }
 
 bool prime(Var & value){
-    return is_prime(as_number(value)->as_int());
+    return is_prime(as_int(value));
 }
 
 int main(){

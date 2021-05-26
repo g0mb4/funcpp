@@ -17,21 +17,22 @@
 
 #define as_number(x)    static_cast<Number*>((x).get())
 #define as_list(x)      static_cast<List*>((x).get())
+#define as_int(x)       as_number(x)->value()
 
 class Variable {
-public:
+private:
         friend void print(const std::shared_ptr<Variable>& v);
-        friend int length(const std::shared_ptr<Variable>& v);
-        friend bool empty(const std::shared_ptr<Variable>& v);
+        friend const std::shared_ptr<Variable> length(const std::shared_ptr<Variable>& l);
 
-        friend const std::shared_ptr<Variable> head(const std::shared_ptr<Variable>& v);
-        friend const std::shared_ptr<Variable> tail(const std::shared_ptr<Variable>& v);
+        friend const std::shared_ptr<Variable> head(const std::shared_ptr<Variable>& l);
+        friend const std::shared_ptr<Variable> tail(const std::shared_ptr<Variable>& l);
         friend const std::shared_ptr<Variable> append(const std::shared_ptr<Variable>& v, const std::shared_ptr<Variable>& l);
         friend const std::shared_ptr<Variable> concat(const std::shared_ptr<Variable>& l1, const std::shared_ptr<Variable>& l2);
         
-        friend const std::shared_ptr<Variable> map(const std::shared_ptr<Variable> (*function)(const std::shared_ptr<Variable>& v), const std::shared_ptr<Variable>& l);
-        friend const std::shared_ptr<Variable> filter(bool (*function)(const std::shared_ptr<Variable>& v), const std::shared_ptr<Variable>& l);
+        friend const std::shared_ptr<Variable> map(const std::shared_ptr<Variable> (*function)(const std::shared_ptr<Variable>& n), const std::shared_ptr<Variable>& l);
+        friend const std::shared_ptr<Variable> filter(bool (*function)(const std::shared_ptr<Variable>& n), const std::shared_ptr<Variable>& l);
 
+public:
         enum class Type {
                 Number = 0,
                 List,
@@ -60,7 +61,7 @@ public:
                 return std::to_string(m_value);
         }
 
-        int as_int() const { return m_value; };
+        int value() const { return m_value; };
 
         Var add(int value) {
                 return std::make_shared<Number>(m_value + value);
@@ -71,8 +72,7 @@ public:
                         return nullptr;
                 }
 
-                auto num = as_number(n);
-                return std::make_shared<Number>(m_value + num->as_int());
+                return std::make_shared<Number>(m_value + as_int(n));
         }
 
         Number(int value) : Variable(Type::Number), m_value(value) {};
@@ -105,7 +105,7 @@ public:
         const std::string string() const override {
                 std::string s = "[";
                 Var l = List::list(m_elements);
-                string_impl(l, s);
+                string(l, s);
                 s += "]";
                 return s;
         }
@@ -114,15 +114,27 @@ public:
                 return m_elements;
         }
 
-        int length_impl() const { return (int)m_elements.size(); };
+        int size() const { return (int)m_elements.size(); };
 
-        Var at(int i) const { 
-                if (i < 0 || i >= m_elements.size()) {
+        Var first() const { 
+                if(m_elements.size() < 0){
                         return nullptr;
                 }
 
-                return m_elements[i];
+                return m_elements[0];
         };
+
+        Var others() const {
+                std::vector<std::shared_ptr<Variable>> elements = m_elements;
+                elements.erase(elements.begin());
+                return List::list(elements);
+        }
+
+        Var append(Var & v) const {
+                std::vector<std::shared_ptr<Variable>> elements = m_elements;
+                elements.emplace_back(v);
+                return List::list(elements);
+        }
 
         List(const std::vector<int>& elements) : Variable(Type::List) {
                 add_elements(elements);
@@ -140,13 +152,6 @@ public:
                 add_elements(start, end);
         };
 
-        void append_elements(Var & v, int index){
-                if(index < length(v)){
-                        auto list = as_list(v);
-                        m_elements.emplace_back(list->at(index));
-                        append_elements(v, index + 1);
-                }
-        }
 private:
         void add_elements(const std::vector<int>& elements) {
                 if (elements.size() > 0) {
@@ -174,9 +179,9 @@ private:
                         return;
                 } 
 
-                if (length(v) > 0) {
+                if (as_int(length(v)) > 0) {
                         auto l = as_list(v);
-                        auto e = l->at(0);
+                        auto e = l->first();
                         m_elements.emplace_back(e);
                         auto new_elements = tail(v);
                         add_elements(new_elements);
@@ -190,17 +195,17 @@ private:
                 }
         }
 
-        void string_impl(Var & list, std::string & str) const {
-                if (length(list) > 0) {
-                        auto v = head(list);
+        void string(Var & l, std::string & str) const {
+                if (as_int(length(l)) > 0) {
+                        auto v = head(l);
 
-                        if (length(list) > 1) {
+                        if (as_int(length(l)) > 1) {
                                 str += v->string() + ", ";
                         } else {
                                 str += v->string();
                         }
 
-                        string_impl(tail(list), str);
+                        string(tail(l), str);
                 }
         }
 
@@ -211,49 +216,43 @@ void print(Var & v) {
         printf("%s\n", v->string().c_str());
 }
 
-int length(Var & v) {
-        if (v->is_number()) {
-                fprintf(stderr, "Illegal operation on a number (%s): %s\n", v->string().c_str(), __FUNCTION__);
+const std::shared_ptr<Variable> length(Var & l) {
+        if (l->is_number()) {
+                fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
                 return 0;
         }
 
-        auto l = as_list(v);
-        return l->length_impl();
+        return Number::number(as_list(l)->size());
 }
 
-bool empty(Var & v) {
-        if (v->is_number()) {
-                fprintf(stderr, "Illegal operation on a number (%s): %s\n", v->string().c_str(), __FUNCTION__);
+bool empty(Var & l) {
+        if (l->is_number()) {
+                fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
                 return 0;
         }
 
-        return length(v) == 0;
+        return as_int(length(l)) == 0;
 }
 
-Var head(Var & v) {
-        if (v->is_number()) {
-                fprintf(stderr, "Illegal operation on a number (%s): %s\n", v->string().c_str(), __FUNCTION__);
+Var head(Var & l) {
+        if (l->is_number()) {
+                fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
                 return nullptr;
         }
 
-        auto l = as_list(v);
-        return l->at(0);
+        return as_list(l)->first();
 }
-Var tail(Var & v) {
-        if (v->is_number()) {
-                fprintf(stderr, "Illegal operation on a number (%s): %s\n", v->string().c_str(), __FUNCTION__);
+
+Var tail(Var & l) {
+        if (l->is_number()) {
+                fprintf(stderr, "Illegal operation on a number (%s): %s\n", l->string().c_str(), __FUNCTION__);
                 return nullptr;
         }
 
-        if (length(v) < 2) {
+        if (as_int(length(l)) < 2) {
                 return List::empty();
         } else {
-                auto new_list = List::empty();
-                auto l = as_list(new_list);
-
-                l->append_elements(v, 1);
-
-                return new_list;
+                return as_list(l)->others();
         }
 }
 
@@ -268,15 +267,12 @@ Var append(Var & v, Var & l){
         } else {
                 auto list = as_list(l);
 
-                if(list->at(0)->type() != v->type()){
+                if(list->first()->type() != v->type()){
                         fprintf(stderr, "Incompatible types to append: %s + %s\n", l->string().c_str(), v->string().c_str());
                         return nullptr;
                 }
 
-                auto e = list->elements();
-                e.emplace_back(v);
-
-                return List::list(e);
+                return list->append(v);
         }
 }
 
@@ -294,16 +290,16 @@ Var concat(Var & l1, Var & l2) {
         }
 }
 
-static Var map_impl(Var (*function)(Var & v), Var & l, Var & res){
-        if(!empty(l)){
+static Var map_impl(Var (*function)(Var & v), Var & l, Var & r){
+        if(as_int(length(l)) > 0){
                 auto v = function(head(l));
-                return map_impl(function, tail(l), append(v, res));
+                return map_impl(function, tail(l), append(v, r));
         } else {
-                return res;
+                return r;
         }
 }
 
-Var map(Var (*function)(Var & v), Var & l){
+Var map(Var (*function)(Var & n), Var & l){
         if(!l->is_list()){
                 fprintf(stderr, "Second parameter (%s) is not a list in: %s\n", l->string().c_str(), __FUNCTION__);
                 return nullptr;
@@ -312,19 +308,19 @@ Var map(Var (*function)(Var & v), Var & l){
         return map_impl(function, l, List::empty());
 }
 
-static Var filter_impl(bool (*function)(Var & v), Var & l, Var & res){
-        if(!empty(l)){
+static Var filter_impl(bool (*function)(Var & n), Var & l, Var & r){
+        if(as_int(length(l)) > 0){
                 if(function(head(l))){
-                        return filter_impl(function, tail(l), append(head(l), res));
+                        return filter_impl(function, tail(l), append(head(l), r));
                 } else {
-                        return filter_impl(function, tail(l), res);
+                        return filter_impl(function, tail(l), r);
                 }
         } else {
-                return res;
+                return r;
         }
 }
 
-Var filter(bool (*function)(Var & v), Var & l){
+Var filter(bool (*function)(Var & n), Var & l){
         if(!l->is_list()){
                 fprintf(stderr, "Second parameter (%s) is not a list in: %s\n", l->string().c_str(), __FUNCTION__);
                 return nullptr;
