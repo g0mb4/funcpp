@@ -78,6 +78,7 @@ public:
         }
 
         Number(int value) : Variable(Type::Number), m_value(value) {};
+        
 private:
         int m_value;
 };
