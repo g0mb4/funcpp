@@ -78,7 +78,7 @@ public:
         }
 
         Number(int value) : Variable(Type::Number), m_value(value) {};
-        
+
 private:
         int m_value;
 };
@@ -281,6 +281,11 @@ Var append(Var & v, Var & l){
 }
 
 Var concat(Var & l1, Var & l2) {
+        if(!l1->is_list() || !l2->is_list()){
+                fprintf(stderr, "Both parameters need to be a lists in concat: %s, %s\n", l1->string().c_str(), l2->string().c_str());
+                exit(1);
+        }
+
         if(empty(l1) && empty(l2)){
                 return List::empty();
         } else if(empty(l1) && !empty(l2)){
