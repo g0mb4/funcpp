@@ -49,7 +49,11 @@ protected:
         x Var append(Var&, Var&); \
         x Var concat(Var&, Var&); \
         x Var map(Var (*function)(Var&), Var&); \
-        x Var filter(bool (*function)(Var&), Var&);
+        x Var filter(bool (*function)(Var&), Var&); \
+        x Var add(Var&, Var&); \
+        x Var sub(Var&, Var&); \
+        x Var mult(Var&, Var&); \
+        x Var idiv(Var&, Var&);
 
 PROTOS()
 
@@ -66,20 +70,8 @@ public:
 
         int value() const { return m_value; };
 
-        Var add(int value) {
-                return std::make_shared<Number>(m_value + value);
-        }
-
-        Var add(Var & n) {
-                if (!n->is_number()) {
-                        fprintf(stderr, "Illegal operation on a list (%s): %s\n", n->string().c_str(), __FUNCTION__);
-                        exit(1);
-                }
-
-                return std::make_shared<Number>(m_value + as_int(n));
-        }
-
         Number(int value) : Variable(Type::Number), m_value(value) {};
+
 private:
         int m_value;
 };
@@ -352,4 +344,40 @@ Var filter(bool (*function)(Var & n), Var & l){
         }
 
         return filter_impl(function, l, List::empty());       
+}
+
+Var add(Var & n1, Var & n2) {
+        if(!n1->is_number() || !n2->is_number()){
+                fprintf(stderr, "Unable to %s lists: %s, %s\n", __FUNCTION__, n1->string().c_str(), n2->string().c_str());
+                exit(1);
+        }
+
+        return Number::number(as_int(n1) + as_int(n2));
+}
+
+Var sub(Var & n1, Var & n2) {
+        if(!n1->is_number() || !n2->is_number()){
+                fprintf(stderr, "Unable to %s lists: %s, %s\n", __FUNCTION__, n1->string().c_str(), n2->string().c_str());
+                exit(1);
+        }
+
+        return Number::number(as_int(n1) - as_int(n2));
+}
+
+Var mult(Var & n1, Var & n2) {
+        if(!n1->is_number() || !n2->is_number()){
+                fprintf(stderr, "Unable to %s lists: %s, %s\n", __FUNCTION__, n1->string().c_str(), n2->string().c_str());
+                exit(1);
+        }
+
+        return Number::number(as_int(n1) * as_int(n2));
+}
+
+Var idiv(Var & n1, Var & n2) {
+        if(!n1->is_number() || !n2->is_number()){
+                fprintf(stderr, "Unable to %s lists: %s, %s\n", __FUNCTION__, n1->string().c_str(), n2->string().c_str());
+                exit(1);
+        }
+
+        return Number::number(as_int(n1) / as_int(n2));
 }

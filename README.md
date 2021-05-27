@@ -9,7 +9,7 @@ This experiment shows how to use C++ as a functional language. Loops (for, while
 #include <funcpp.h>
 
 Var add2(Var & value){
-    return as_number(value)->add(2);
+    return add(value, Number::number(2));
 }
 
 bool odd(Var & value){
