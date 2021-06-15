@@ -1,24 +1,27 @@
 #include <funcpp.h>
 
-bool is_prime(int n, int i = 2){
-    if(n <= 1){
+bool is_prime(int n, int i = 2)
+{
+    if (n <= 1) {
         return false;
-    } else if(n == 2){
+    } else if (n == 2) {
         return true;
-    } else if(i * i > n){
+    } else if (i * i > n) {
         return true;
-    } else if(n % i == 0){
+    } else if (n % i == 0) {
         return false;
     } else {
         return is_prime(n, i + 1);
     }
 }
 
-bool prime(Var & value){
+bool prime(Var& value)
+{
     return is_prime(as_int(value));
 }
 
-int main(){
+int main()
+{
     Var l = List::list(1, 100);
 
     print(l);
